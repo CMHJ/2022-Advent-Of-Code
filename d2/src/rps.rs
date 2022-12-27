@@ -12,22 +12,13 @@
  * C or Z - Scissors
  */
 
-pub enum RPS {
+enum RPS {
     Rock,
     Paper,
     Scissors,
 }
 
-// static Codes: phf::Map<&'static char, RPS> = phf_map! {
-//     'A' => RPS::Rock,
-//     'X' => RPS::Rock,
-//     'B' => RPS::Paper,
-//     'Y' => RPS::Paper,
-//     'C' => RPS::Scissors,
-//     'Z' => RPS::Scissors,
-// };
-
-pub fn eval_code(c: &char) -> RPS {
+fn eval_code(c: &char) -> RPS {
     match c {
         'A' => RPS::Rock,
         'X' => RPS::Rock,
@@ -39,18 +30,11 @@ pub fn eval_code(c: &char) -> RPS {
     }
 }
 
-#[derive(Debug)]
 pub enum GameResult {
     Lose,
     Draw,
     Win,
 }
-
-// static GameResultScores: HashMap<GameResult, u8> = {
-//     (GameResult::Lose, 0),
-//     (GameResult::Draw, 3),
-//     (GameResult::Win, 6),
-// };
 
 fn eval_code_score(a: &RPS) -> u8 {
     match a {
@@ -60,7 +44,7 @@ fn eval_code_score(a: &RPS) -> u8 {
     }
 }
 
-pub fn eval_score(res: &GameResult) -> u8 {
+fn eval_score(res: &GameResult) -> u8 {
     match res {
         GameResult::Lose => 0,
         GameResult::Draw => 3,
@@ -94,14 +78,4 @@ pub fn eval_result(a: &char, b: &char) -> u8 {
     let choice_score = eval_code_score(&b_eval);
 
     res_score + choice_score
-}
-
-#[cfg(test)]
-mod test {
-    use super::*;
-
-    #[test]
-    fn test_basic() {
-        assert!(0 == 0);
-    }
 }

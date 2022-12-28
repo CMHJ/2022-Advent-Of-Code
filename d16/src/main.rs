@@ -1,3 +1,4 @@
+use d16::*;
+
 fn main() {
-    println!("Hello, world!");
 }

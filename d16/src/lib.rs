@@ -104,7 +104,7 @@ fn depth_first_search(
         depth_first_search(
             valve_name_current,
             path_score_new,
-            minutes_remaining - 1,
+            minutes_remaining - 2, // 1 for opening, 1 for travelling
             &valves,
             valves_opened.clone(),
             path_scores,

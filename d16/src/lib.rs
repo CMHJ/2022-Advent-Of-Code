@@ -7,12 +7,11 @@ struct Valve {
 }
 
 pub fn solve_d16(input_text: &mut String) -> usize {
-    let valves = parse_input(&mut input_text);
+    let valves = parse_input(input_text);
     let mut scores = solve_path_scores(valves);
 
-
     scores.sort_by(|a, b| b.cmp(a));
-    return *scores.last().unwrap();
+    return *scores.first().unwrap();
 }
 
 fn parse_input(input: &mut String) -> HashMap<String, Valve> {
@@ -47,7 +46,7 @@ fn parse_input(input: &mut String) -> HashMap<String, Valve> {
         // Process first part
         let mut part_1_parts: Vec<String> = line_part_1.split(' ').map(|s| s.to_string()).collect();
         let valve_name = part_1_parts.remove(0);
-        let valve_flowrate = part_1_parts.remove(0).parse::<usize>().unwrap();
+        let valve_flow_rate = part_1_parts.remove(0).parse::<usize>().unwrap();
         // println!("{} {}", valve_name, valve_flowrate);
 
         // Process second part
@@ -70,36 +69,81 @@ fn parse_input(input: &mut String) -> HashMap<String, Valve> {
         valves.insert(
             valve_name,
             Valve {
-                flow_rate: valve_flowrate,
-                tunnels: tunnels,
+                flow_rate: valve_flow_rate,
+                tunnels,
             },
         );
     }
 
-    println!("{:#?}", valves);
+    println!("{:?}", valves);
     return valves;
 }
 
-fn depth_first_search(valve_name: String, minutes: usize, valves: &HashMap<String, Valve>, scores: &mut Vec<usize>) {
-    // Check return condition
-    if minutes == 0 {
+fn depth_first_search(
+    valve_name_current: String,
+    path_score_current: usize,
+    minutes_remaining: usize,
+    valves: &HashMap<String, Valve>,
+    valves_opened: Vec<String>,
+    path_scores: &mut Vec<usize>,
+) {
+    let valve_current = valves.get(&valve_name_current).unwrap();
+    let path_score_current = path_score_current;
+    let mut valves_opened = valves_opened;
 
+    // Check return condition
+    if minutes_remaining == 0 || valves_opened.len() == valves.len() {
+        path_scores.push(path_score_current);
+        return;
     }
 
-    //
-
-    // Iterate through each neighbour
+    // Check paths where pipe is opened first
+    if valves_opened.contains(&valve_name_current) == false && valve_current.flow_rate != 0 {
+        valves_opened.push(valve_name_current.clone());
+        let path_score_new = path_score_current + (minutes_remaining - 1) * valve_current.flow_rate;
+        depth_first_search(
+            valve_name_current,
+            path_score_new,
+            minutes_remaining - 1,
+            &valves,
+            valves_opened.clone(),
+            path_scores,
+        )
+    } else {
+        // Check paths by iterating through each neighbour
+        for t in &valve_current.tunnels {
+            depth_first_search(
+                t.clone(),
+                path_score_current,
+                minutes_remaining - 1,
+                &valves,
+                valves_opened.clone(),
+                path_scores,
+            )
+        }
+    }
 }
 
 fn solve_path_scores(valves: HashMap<String, Valve>) -> Vec<usize> {
-    vec![0]
+    let mut path_scores: Vec<usize> = Vec::new();
+    depth_first_search(
+        String::from("AA"),
+        0,
+        30,
+        &valves,
+        Vec::new(),
+        &mut path_scores,
+    );
+
+    // println!("{:?}", path_scores);
+    return path_scores;
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
 
-    const input: &str = r#"Valve AA has flow rate=0; tunnels lead to valves DD, II, BB
+    const INPUT: &str = r#"Valve AA has flow rate=0; tunnels lead to valves DD, II, BB
 Valve BB has flow rate=13; tunnels lead to valves CC, AA
 Valve CC has flow rate=2; tunnels lead to valves DD, BB
 Valve DD has flow rate=20; tunnels lead to valves CC, AA, EE
@@ -112,7 +156,7 @@ Valve JJ has flow rate=21; tunnel leads to valve II"#;
 
     #[test]
     fn test_example() {
-        let max_pressure = solve_d16(&mut String::from(input));
+        let max_pressure = solve_d16(&mut String::from(INPUT));
         assert_eq!(1651, max_pressure);
     }
 }

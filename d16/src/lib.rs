@@ -1,19 +1,18 @@
 use std::collections::HashMap;
-use std::fs;
 
 #[derive(Debug)]
 struct Valve {
-    flow_rate: u64,
+    flow_rate: usize, // Pressure / minute
     tunnels: Vec<String>,
 }
 
-pub fn solve_d16(input_file_path: &String) {
-    let mut contents = read_input_file(input_file_path);
-    parse_input(&mut contents);
-}
+pub fn solve_d16(input_text: &mut String) -> usize {
+    let valves = parse_input(&mut input_text);
+    let mut scores = solve_path_scores(valves);
 
-fn read_input_file(path: &String) -> String {
-    fs::read_to_string(path).unwrap()
+
+    scores.sort_by(|a, b| b.cmp(a));
+    return *scores.last().unwrap();
 }
 
 fn parse_input(input: &mut String) -> HashMap<String, Valve> {
@@ -48,7 +47,7 @@ fn parse_input(input: &mut String) -> HashMap<String, Valve> {
         // Process first part
         let mut part_1_parts: Vec<String> = line_part_1.split(' ').map(|s| s.to_string()).collect();
         let valve_name = part_1_parts.remove(0);
-        let valve_flowrate = part_1_parts.remove(0).parse::<u64>().unwrap();
+        let valve_flowrate = part_1_parts.remove(0).parse::<usize>().unwrap();
         // println!("{} {}", valve_name, valve_flowrate);
 
         // Process second part
@@ -81,6 +80,21 @@ fn parse_input(input: &mut String) -> HashMap<String, Valve> {
     return valves;
 }
 
+fn depth_first_search(valve_name: String, minutes: usize, valves: &HashMap<String, Valve>, scores: &mut Vec<usize>) {
+    // Check return condition
+    if minutes == 0 {
+
+    }
+
+    //
+
+    // Iterate through each neighbour
+}
+
+fn solve_path_scores(valves: HashMap<String, Valve>) -> Vec<usize> {
+    vec![0]
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -98,6 +112,7 @@ Valve JJ has flow rate=21; tunnel leads to valve II"#;
 
     #[test]
     fn test_example() {
-        parse_input(&mut String::from(input));
+        let max_pressure = solve_d16(&mut String::from(input));
+        assert_eq!(1651, max_pressure);
     }
 }

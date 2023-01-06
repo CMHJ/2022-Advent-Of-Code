@@ -44,14 +44,6 @@ fn eval_code_2(c: &char) -> GameResult {
         _ => panic!("Result code not found"),
     }
 }
-fn eval_result_choice(a: &GameResult) -> char {
-    match a {
-        GameResult::Lose => 'X',
-        GameResult::Draw => 'Y',
-        GameResult::Win => 'Z',
-        _ => panic!("Result code not found"),
-    }
-}
 
 fn eval_code_score(a: &RPS) -> u8 {
     match a {

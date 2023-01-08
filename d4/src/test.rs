@@ -12,3 +12,9 @@ fn test_part_1() {
     let score = solve_part_1(String::from(TEST_INPUT));
     assert_eq!(2, score);
 }
+
+#[test]
+fn test_part_2() {
+    let score = solve_part_2(String::from(TEST_INPUT));
+    assert_eq!(4, score);
+}

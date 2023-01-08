@@ -98,15 +98,13 @@ pub fn solve_part_2(input: String) -> usize {
         // Iterate through each item
         for j in (0..=51_usize).rev() {
             // Check for the common item in each group
-            if (group[0].compartments[0][j] > 0 ||
-                group[0].compartments[1][j] > 0) &&
-                (group[1].compartments[0][j] > 0 ||
-                group[1].compartments[1][j] > 0) &&
-                (group[2].compartments[0][j] > 0 ||
-                group[2].compartments[1][j] > 0) {
-                    score_total += j + 1;
-                    break;
-                }
+            if (group[0].compartments[0][j] > 0 || group[0].compartments[1][j] > 0)
+                && (group[1].compartments[0][j] > 0 || group[1].compartments[1][j] > 0)
+                && (group[2].compartments[0][j] > 0 || group[2].compartments[1][j] > 0)
+            {
+                score_total += j + 1;
+                break;
+            }
         }
 
         i += 3;

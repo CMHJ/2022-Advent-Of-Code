@@ -95,12 +95,24 @@ pub fn solve_part_2(input: String) -> usize {
             rucksacks.get(i + 2).unwrap(),
         ];
 
-        for j in (0..=51_usize).rev() {}
+        // Iterate through each item
+        for j in (0..=51_usize).rev() {
+            // Check for the common item in each group
+            if (group[0].compartments[0][j] > 0 ||
+                group[0].compartments[1][j] > 0) &&
+                (group[1].compartments[0][j] > 0 ||
+                group[1].compartments[1][j] > 0) &&
+                (group[2].compartments[0][j] > 0 ||
+                group[2].compartments[1][j] > 0) {
+                    score_total += j + 1;
+                    break;
+                }
+        }
 
         i += 3;
     }
 
-    0
+    return score_total;
 }
 
 #[cfg(test)]
@@ -120,6 +132,7 @@ CrZsJsPPZsGzwwsLwLmpwMDw";
         assert_eq!(157, score);
     }
 
+    #[test]
     fn test_part_2() {
         let score = solve_part_2(String::from(INPUT));
         assert_eq!(70, score);

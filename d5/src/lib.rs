@@ -92,7 +92,7 @@ fn parse_stack_procedure(stack_procedure_raw: Vec<&str>) -> Vec<Move> {
     return move_list;
 }
 
-fn run_stack_procedure(mut stack_list: Vec<Vec<char>>, move_list: Vec<Move>) -> String {
+fn run_stack_procedure_1(mut stack_list: Vec<Vec<char>>, move_list: Vec<Move>) -> String {
     for m in move_list {
         for _ in 0..m.n {
             let stack_from = stack_list.get_mut(m.from - 1).unwrap();
@@ -111,9 +111,42 @@ fn run_stack_procedure(mut stack_list: Vec<Vec<char>>, move_list: Vec<Move>) -> 
     return msg;
 }
 
+fn run_stack_procedure_2(mut stack_list: Vec<Vec<char>>, move_list: Vec<Move>) -> String {
+    for m in move_list {
+        // Create stack to store chars while they are moved to preserve order
+        let mut char_stack: Vec<char> = Vec::new();
+
+        for _ in 0..m.n {
+            let stack_from = stack_list.get_mut(m.from - 1).unwrap();
+            let c = stack_from.pop().unwrap();
+            char_stack.insert(0, c);
+        }
+
+        let stack_to = stack_list.get_mut(m.to - 1).unwrap();
+        for c in char_stack {
+            stack_to.push(c);
+        }
+    }
+
+    // Construct message for result
+    let mut msg = String::new();
+    for v in stack_list {
+        msg.push(v.last().unwrap().clone());
+    }
+
+    return msg;
+}
+
 pub fn solve_part_1(input: String) -> String {
     let (stack_list, move_list) = parse_input(input);
-    let msg = run_stack_procedure(stack_list, move_list);
+    let msg = run_stack_procedure_1(stack_list, move_list);
+
+    return msg;
+}
+
+pub fn solve_part_2(input: String) -> String {
+    let (stack_list, move_list) = parse_input(input);
+    let msg = run_stack_procedure_2(stack_list, move_list);
 
     return msg;
 }

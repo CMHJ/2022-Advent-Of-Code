@@ -1,4 +1,4 @@
-use crate::solve_part_1;
+use crate::*;
 
 const TEST_INPUT: &str = r"    [D]
 [N] [C]
@@ -14,4 +14,10 @@ move 1 from 1 to 2";
 fn test_part_1() {
     let msg = solve_part_1(String::from(TEST_INPUT));
     assert_eq!(msg, "CMZ");
+}
+
+#[test]
+fn test_part_2() {
+    let msg = solve_part_2(String::from(TEST_INPUT));
+    assert_eq!(msg, "MCD");
 }

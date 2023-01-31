@@ -12,5 +12,6 @@ move 1 from 1 to 2";
 
 #[test]
 fn test_part_1() {
-    solve_part_1(String::from(TEST_INPUT));
+    let msg = solve_part_1(String::from(TEST_INPUT));
+    assert_eq!(msg, "CMZ");
 }

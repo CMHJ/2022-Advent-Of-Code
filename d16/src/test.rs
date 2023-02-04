@@ -13,6 +13,7 @@ Valve JJ has flow rate=21; tunnel leads to valve II";
 
 #[test]
 fn test_p1(){
-    let score = solve_p1(String::from(TEST_INPUT));
-    assert_eq!(score, 1651);
+    let (score_p1, score_p2) = solve(String::from(TEST_INPUT));
+    assert_eq!(score_p1, 1651);
+    assert_eq!(score_p2, 1707);
 }

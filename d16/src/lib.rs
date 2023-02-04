@@ -24,12 +24,13 @@ edges, which apparently can be worse than FW but on average will be better.
 #[cfg(test)]
 mod test;
 
+use std::cmp::max;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::collections::VecDeque;
-use std::cmp::max;
 
-const TIME_REMAINING_P1_START: usize = 30;
+const TIME_REMAINING_START: usize = 30;
+const TIME_TO_TEACH_ELEPHANT: usize = 4;
 
 type ValveMap = HashMap<String, Valve>;
 type ValveDistanceMap = HashMap<String, usize>;
@@ -43,17 +44,60 @@ struct Valve {
 struct ValveData {
     valves: ValveMap,
     valve_distance_maps: HashMap<String, ValveDistanceMap>,
-    valve_indices: HashMap<String, usize>
-    // valve_cache:
+    valve_indices: HashMap<String, usize>, // valve_cache:
 }
 
-pub fn solve_p1(input: String) -> usize {
+pub fn solve(input: String) -> (usize, usize) {
     let valves: ValveMap = parse_input(input);
     let valve_data = simplify_graph(valves);
     let mut valve_cache = ValveCache::new();
-    let max_score = dfs(&valve_data, &mut valve_cache, TIME_REMAINING_P1_START, "AA".to_string(), 0);
 
-    max_score
+    // Solve part 1
+    let max_score_p1 = dfs(
+        &valve_data,
+        &mut valve_cache,
+        TIME_REMAINING_START,
+        "AA".to_string(),
+        0,
+    );
+
+    // Solve part 2
+    // Need to generate a bitmask to split the valves to open in two. One for me
+    // and one for the elephant, since dfs returns change in score from starting
+    // state. Bitmask represents the end state of all valves turned on. Method
+    // involves brute-forcing every possible combination to find best. This is
+    // done by counting up to find the first and XORing the bitmask to find the
+    // bitmask for the Elephant. Cache will speed things up as more alternatives
+    // are computed.
+    let endstate_bitmask: usize = (1 << valve_data.valve_indices.len()) - 1;
+    // Only need to check half the states as this bitmask is inverted.
+    // e.g. if bitmask is currently 000111 we don't need to check 111000 as
+    // elephant would have already checked that state on the 000111 bitmask due
+    // to the XOR inversion.
+    let endstate_bitmask_optimised = endstate_bitmask / 2;
+
+    let mut max_score_p2: usize = 0;
+    let p2_time_remaining_start: usize = TIME_REMAINING_START - TIME_TO_TEACH_ELEPHANT;
+    for i in 0..=endstate_bitmask_optimised as usize {
+        max_score_p2 = max(
+            max_score_p2,
+            dfs(
+                &valve_data,
+                &mut valve_cache,
+                p2_time_remaining_start,
+                "AA".to_string(),
+                i,
+            ) + dfs(
+                &valve_data,
+                &mut valve_cache,
+                p2_time_remaining_start,
+                "AA".to_string(),
+                endstate_bitmask ^ i,
+            ),
+        )
+    }
+
+    (max_score_p1, max_score_p2)
 }
 
 fn parse_input(input: String) -> ValveMap {
@@ -140,9 +184,15 @@ fn simplify_graph(valves: ValveMap) -> ValveData {
             }
         }
 
-        valve_distance_maps.get_mut(valve_name).unwrap().remove(valve_name);
+        valve_distance_maps
+            .get_mut(valve_name)
+            .unwrap()
+            .remove(valve_name);
         if valve_name != "AA" {
-            valve_distance_maps.get_mut(valve_name).unwrap().remove("AA");
+            valve_distance_maps
+                .get_mut(valve_name)
+                .unwrap()
+                .remove("AA");
         }
 
         // println!("{:#?}", valve_distance_maps);
@@ -157,18 +207,33 @@ fn simplify_graph(valves: ValveMap) -> ValveData {
     ValveData {
         valves,
         valve_distance_maps,
-        valve_indices
+        valve_indices,
     }
 }
 
-fn dfs(valve_data: &ValveData, valve_cache: &mut ValveCache, time_remaining: usize, valve_name_current: String, valves_open_bitmask: usize) -> usize {
-    let cache_key = &(time_remaining, valve_name_current.clone(), valves_open_bitmask);
+fn dfs(
+    valve_data: &ValveData,
+    valve_cache: &mut ValveCache,
+    time_remaining: usize,
+    valve_name_current: String,
+    valves_open_bitmask: usize,
+) -> usize {
+    let cache_key = &(
+        time_remaining,
+        valve_name_current.clone(),
+        valves_open_bitmask,
+    );
     if valve_cache.contains_key(cache_key) {
         return *valve_cache.get(cache_key).unwrap();
     }
 
     let mut max_score: usize = 0;
-    for neighbour in valve_data.valve_distance_maps.get(&valve_name_current).unwrap().keys() {
+    for neighbour in valve_data
+        .valve_distance_maps
+        .get(&valve_name_current)
+        .unwrap()
+        .keys()
+    {
         // Check if valve is already open in the bitmask
         let bit: usize = 1 << valve_data.valve_indices.get(neighbour).unwrap();
         if valves_open_bitmask & bit != 0 {
@@ -176,7 +241,13 @@ fn dfs(valve_data: &ValveData, valve_cache: &mut ValveCache, time_remaining: usi
         }
 
         // Calculate if time remaining doesn't go past zero
-        let time_remaining_after_move: isize = time_remaining as isize - (1 + valve_data.valve_distance_maps.get(&valve_name_current).unwrap().get(neighbour).unwrap()) as isize;
+        let time_remaining_after_move: isize = time_remaining as isize
+            - (1 + valve_data
+                .valve_distance_maps
+                .get(&valve_name_current)
+                .unwrap()
+                .get(neighbour)
+                .unwrap()) as isize;
         if time_remaining_after_move <= 0 {
             continue;
         }
@@ -189,8 +260,9 @@ fn dfs(valve_data: &ValveData, valve_cache: &mut ValveCache, time_remaining: usi
                 valve_cache,
                 time_remaining_after_move,
                 neighbour.clone(),
-                valves_open_bitmask | bit // Open valve in bitmask
-            ) + valve_data.valves.get(neighbour).unwrap().flow_rate * time_remaining_after_move as usize
+                valves_open_bitmask | bit, // Open valve in bitmask
+            ) + valve_data.valves.get(neighbour).unwrap().flow_rate
+                * time_remaining_after_move as usize,
         );
     }
 

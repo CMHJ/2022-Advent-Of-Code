@@ -19,6 +19,13 @@ discounting the nodes with 0 flow rate.
 
 FW is O(n^3) but breadth first search is O(V + E) or number of vertices plus
 edges, which apparently can be worse than FW but on average will be better.
+
+In a nutshell:
+  - Parse input
+  - Perform BFS to simplify the graph
+  - Brute-force max score by doing a DFS on every combination of node visits
+  - For part 2, just split the number of nodes to visit in two and DFS on both
+  partitions for the max score for both DFS'
 */
 
 #[cfg(test)]

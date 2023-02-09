@@ -26,6 +26,13 @@ $ ls
 
 #[test]
 fn test_p1() {
-    let total_size = solve_p1(TEST_INPUT);
+    let (total_size, _) = solve(TEST_INPUT);
     assert_eq!(total_size, 95437);
 }
+
+#[test]
+fn test_p2() {
+    let (_, min_size) = solve(TEST_INPUT);
+    assert_eq!(min_size, 24933642);
+}
+

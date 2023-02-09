@@ -58,14 +58,15 @@ impl Dir {
 
 pub fn solve_p1(input: &str) -> usize {
     let dirs = parse_input(input);
-    println!("LOL I'M HERE");
-    sum_dirs(dirs)
+    // sum_dirs(dirs)
+    let (size_cumulative, _) = calculate_size(&dirs, &"/".to_string());
+    size_cumulative
 }
 
-fn parse_input(input: &str) -> HashMap<String, usize> {
+fn parse_input(input: &str) -> HashMap<String, Dir> {
     let mut dirs: HashMap<String, Dir> = HashMap::new();
     let mut dir_current_name: String = String::new();
-    let mut dir_sizes: HashMap<String, usize> = HashMap::new();
+    // let mut dir_sizes: HashMap<String, usize> = HashMap::new();
 
     for l in input.lines() {
         let words: Vec<&str> = l.split_ascii_whitespace().collect();
@@ -102,7 +103,7 @@ fn parse_input(input: &str) -> HashMap<String, usize> {
                     }
                 };
                 dirs.entry(String::from(*dir_name)).or_insert(dir);
-                dir_sizes.entry(String::from(*dir_name)).or_insert(0);
+                // dir_sizes.entry(String::from(*dir_name)).or_insert(0);
 
                 match dirs.get_mut(&dir_current_name) {
                     Some(dir) => {
@@ -124,14 +125,14 @@ fn parse_input(input: &str) -> HashMap<String, usize> {
 
                 let dir_current = dirs.get_mut(&dir_current_name).unwrap();
                 dir_current.files.push(file);
-                *dir_sizes.get_mut(&dir_current_name).unwrap() = dir_current.calculate_size(&dir_sizes);
+                // *dir_sizes.get_mut(&dir_current_name).unwrap() = dir_current.calculate_size(&dir_sizes);
                 // dir_current.update_size(&dirs);
 
                 // Propagate change up dir tree
                 let mut parent = dir_current.parent.clone();
                 while let Some(dir_prop_name) = parent {
                     let dir_prop_current = dirs.get_mut(&dir_prop_name).unwrap();
-                    *dir_sizes.get_mut(&dir_prop_name).unwrap() = dir_prop_current.calculate_size(&dir_sizes);
+                    // *dir_sizes.get_mut(&dir_prop_name).unwrap() = dir_prop_current.calculate_size(&dir_sizes);
                     parent = dir_prop_current.parent.clone();
                 }
             }
@@ -142,7 +143,7 @@ fn parse_input(input: &str) -> HashMap<String, usize> {
     }
 
     // println!("{:#?}", dirs);
-    dir_sizes
+    dirs
 }
 
 fn sum_dirs(dir_sizes: HashMap<String, usize>) -> usize {
@@ -158,4 +159,26 @@ fn sum_dirs(dir_sizes: HashMap<String, usize>) -> usize {
     }
 
     total_score
+}
+
+fn calculate_size(dirs: &HashMap<String, Dir>, dir_current_name: &String) -> (usize, usize) {
+    //! Returns (total_cumulative, dir_size)
+    let dir_current = dirs.get(dir_current_name).unwrap();
+    let mut size_dir = 0;
+    let mut size_cumulative = 0;
+
+    for file in &dir_current.files {
+        size_dir += file.size;
+    }
+    for dir_child in &dir_current.dirs {
+        let (sc, sd) = calculate_size(dirs, dir_child);
+        size_cumulative += sc;
+        size_dir += sd;
+
+    }
+    if size_dir <= MAX_SIZE {
+        size_cumulative += size_dir;
+    }
+
+    (size_cumulative, size_dir)
 }

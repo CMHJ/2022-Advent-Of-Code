@@ -15,34 +15,43 @@ type TreeMap = Vec<Vec<Tree>>;
 struct Tree {
     height: i8,
     visible: bool,
+    scenic_score: usize,
 }
 
 pub fn solve_p1(input: &str) -> usize {
     let mut tree_map = parse_input(input);
     mark_visible_trees(&mut tree_map);
+
     // print_tree_map_height(&tree_map);
     // println!();
     // print_tree_map_visible(&tree_map);
+
     let n = count_visible_trees(&tree_map);
     n
 }
 
+pub fn solve_p2(input: &str) -> usize {
+    let tree_map = parse_input(input);
+    let max_score = calculate_scenic_scores(&tree_map);
+    max_score
+}
+
 fn parse_input(input: &str) -> TreeMap {
     let mut tree_map = TreeMap::new();
-    // Parse numbers into 2D vector of u8s
     for line in input.lines() {
         let mut tree_row: Vec<Tree> = Vec::with_capacity(line.len());
         for c in line.chars() {
             let tree = Tree {
                 height: c.to_digit(10).expect("Could not convert to number") as i8,
                 visible: false,
+                scenic_score: 0,
             };
+
             tree_row.push(tree);
         }
 
         tree_map.push(tree_row);
     }
-    // Create matching 2D vector of bools to mark trees that can be seen
 
     tree_map
 }
@@ -131,4 +140,75 @@ fn print_tree_map_height(tree_map: &TreeMap) {
         }
         println!();
     }
+}
+
+fn calculate_scenic_scores(tree_map: &TreeMap) -> usize {
+    let length_row = tree_map.get(0).unwrap().len();
+    let length_column = tree_map.len();
+    let mut max_score: usize = 0;
+
+    for r in 1..(length_column - 1) {
+        for c in 1..(length_row - 1) {
+            let current_scenic_score = calculate_scenic_score(tree_map, r, c);
+
+            if current_scenic_score > max_score {
+                max_score = current_scenic_score;
+            }
+        }
+    }
+
+    max_score
+}
+
+fn calculate_scenic_score(tree_map: &TreeMap, r: usize, c: usize) -> usize {
+    let length_row = tree_map.get(0).unwrap().len();
+    let length_column = tree_map.len();
+    let tree = tree_map.get(r).unwrap().get(c).unwrap();
+    let mut current_scenic_score: usize = 1;
+
+    // Look up
+    let mut view_score: usize = 0;
+    for i in (0..r).rev() {
+        let tree_in_view = tree_map.get(i).unwrap().get(c).unwrap();
+        view_score += 1;
+        if tree_in_view.height >= tree.height {
+            break;
+        }
+    }
+    current_scenic_score *= view_score;
+
+    // Look left
+    let mut view_score: usize = 0;
+    for i in (0..c).rev() {
+        let tree_in_view = tree_map.get(r).unwrap().get(i).unwrap();
+        view_score += 1;
+        if tree_in_view.height >= tree.height {
+            break;
+        }
+    }
+    current_scenic_score *= view_score;
+
+    // Look right
+    let mut view_score: usize = 0;
+    for i in (c + 1)..length_row {
+        let tree_in_view = tree_map.get(r).unwrap().get(i).unwrap();
+        view_score += 1;
+        if tree_in_view.height >= tree.height {
+            break;
+        }
+    }
+    current_scenic_score *= view_score;
+
+    // Look down
+    let mut view_score: usize = 0;
+    for i in (r + 1)..length_column {
+        let tree_in_view = tree_map.get(i).unwrap().get(c).unwrap();
+        view_score += 1;
+        if tree_in_view.height >= tree.height {
+            break;
+        }
+    }
+    current_scenic_score *= view_score;
+
+    current_scenic_score
 }

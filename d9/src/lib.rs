@@ -35,47 +35,12 @@ pub fn solve_p1(input: &str) -> usize {
         let steps: usize = words.get(1).unwrap().parse().unwrap();
 
         for _ in 0..steps {
-            match direction {
-                'L' => {
-                    h.x -= 1;
-                }
-                'R' => {
-                    h.x += 1;
-                }
-                'U' => {
-                    h.y += 1;
-                }
-                'D' => {
-                    h.y -= 1;
-                }
-                _ => {
-                    panic!("Unexpected direction!");
-                }
-            }
+            head_step(&mut h, direction);
 
             // Update tail
-            let diff_x = h.x - t.x;
-            let diff_y = h.y - t.y;
-            // If head is moving on x axis and tail needs to update
-            if diff_x.abs() > 1 {
-                if diff_x.is_positive() {
-                    t.x += 1
-                }
-                else {
-                    t.x -= 1
-                }
-                t.y += diff_y;
-            }
-            // If head is moving on y axis and tail needs to update
-            if diff_y.abs() > 1 {
-                if diff_y.is_positive() {
-                    t.y += 1
-                }
-                else {
-                    t.y -= 1
-                }
-                t.x += diff_x;
-            }
+            let position_transform = next_link_step(&h, &t);
+            t.x += position_transform.0;
+            t.y += position_transform.1;
 
             if unique_positions.contains(&t.as_tuple()) == false {
                 unique_positions.push(t.as_tuple());
@@ -85,6 +50,56 @@ pub fn solve_p1(input: &str) -> usize {
 
     // println!("Unique positions: {}", unique_positions.len());
     unique_positions.len()
+}
+
+fn head_step(h: &mut Position, direction: char) {
+    match direction {
+        'L' => {
+            h.x -= 1;
+        }
+        'R' => {
+            h.x += 1;
+        }
+        'U' => {
+            h.y += 1;
+        }
+        'D' => {
+            h.y -= 1;
+        }
+        _ => {
+            panic!("Unexpected direction!");
+        }
+    }
+}
+
+fn next_link_step(h: &Position, t: &Position) -> (isize, isize) {
+    //! Returns transformation for next link in the rope after "head" has already moved
+    // Get vectors from "tail" to "head"
+    let diff_x = h.x - t.x;
+    let diff_y = h.y - t.y;
+    let mut position_transform = (0, 0);
+    // If head has moved sufficiently far on x axis and tail needs to update
+    if diff_x.abs() > 1 {
+        if diff_x.is_positive() {
+            position_transform.0 = 1;
+        } else {
+            position_transform.0 = -1;
+        }
+        // Clamp is to account for diagonal movement of previous link where diff_y will be 2
+        position_transform.1 = diff_y.clamp(-1, 1);
+    }
+    // If head has moved sufficiently far on y axis and tail needs to update
+    else if diff_y.abs() > 1 {
+        if diff_y.is_positive() {
+            position_transform.1 = 1;
+        } else {
+            position_transform.1 = -1;
+        }
+        // Clamp is to account for diagonal movement of previous link where diff_x will be 2
+        position_transform.0 = diff_x.clamp(-1, 1);
+    }
+
+    position_transform
 }
 
 pub fn solve_p2(input: &str) -> usize {
@@ -97,30 +112,40 @@ pub fn solve_p2(input: &str) -> usize {
         let direction: char = words.get(0).unwrap().chars().nth(0).unwrap();
         let steps: usize = words.get(1).unwrap().parse().unwrap();
 
-        // Move head
-        // Calculate head relative to next link
-        // If next link needs to move
-        // Propagate movement until movement condition is no longer satisfied
-        for knot in knot_positions {
-            // println!("{:?}", p.as_tuple());
+        for _ in 0..steps {
+            // Move head
+            head_step(&mut knot_positions[0], direction);
+
+            // Propagate movement down the knots until movement condition is no
+            // longer satisfied
+            for tail_index in 1..knot_positions.len() {
+                // Split array into two mutable slices so that we can operator
+                // on two elements at the same time
+                let (first_half, second_half) = knot_positions.split_at_mut(tail_index);
+                let h = first_half.last_mut().unwrap();
+                let t = second_half.first_mut().unwrap();
+
+                // Calculate head relative to next link
+                // and if next link needs to move
+                let position_transform = next_link_step(&h, &t);
+                // If knot no longer has to move just break as any other knot
+                // will also not have to move
+                if position_transform.0 == 0 && position_transform.1 == 0 {
+                    break;
+                }
+
+                // Perform movement
+                t.x += position_transform.0;
+                t.y += position_transform.1;
+                // println!("{:?}", p.as_tuple());
+            }
+
+            if unique_positions.contains(&knot_positions.last().unwrap().as_tuple()) == false {
+                unique_positions.push(knot_positions.last().unwrap().as_tuple());
+            }
         }
-        // Continue
     }
 
-    0
-}
-
-fn propagate_movement(leader: &Position, follower: &mut Position) {
-    let diff_x = leader.x - follower.x;
-    let diff_y = leader.y - follower.y;
-    if diff_x.abs() > 1 {
-        if diff_x.is_positive() {
-            follower.x = leader.x - 1;
-        }
-        else {
-            follower.x = leader.x + 1;
-        }
-        follower.y = leader.y;
-    }
-    // else if diff_y
+    // println!("Unique positions: {}", unique_positions.len());
+    unique_positions.len()
 }

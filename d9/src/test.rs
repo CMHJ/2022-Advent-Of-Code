@@ -26,12 +26,12 @@ fn test_p1() {
 
 #[test]
 fn test_p2_1() {
-    // let n = solve_p2(TEST_INPUT);
-    // assert_eq!(n, 1);
+    let n = solve_p2(TEST_INPUT);
+    assert_eq!(n, 1);
 }
 
 #[test]
 fn test_p2_2() {
-    // let n = solve_p2(TEST_INPUT_2);
-    // assert_eq!(n, 36);
+    let n = solve_p2(TEST_INPUT_2);
+    assert_eq!(n, 36);
 }

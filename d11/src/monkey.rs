@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Monkey {
     pub items: Vec<Item>,
     pub items_inspected: usize,
@@ -13,17 +13,19 @@ pub struct Monkey {
 
 #[derive(Debug)]
 pub struct Item {
-    pub worry_level: usize,
+    pub worry_level: isize,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub enum OpType {
-    Old,
+    #[default]
     Number,
+    Old,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub enum Action {
+    #[default]
     Add,
     Sub,
     Mul,
